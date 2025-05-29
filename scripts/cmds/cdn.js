@@ -2,9 +2,9 @@ const axios = require('axios');
 
 module.exports = {
   config: {
-    name: 'cdn',
+    name: 'chudon',
     category: 'MEDIA',
-    author: 'Nyx × Xass',
+    author: 'BaYjid',
     description: 'Uploads media from a replied message to a server and returns the new URL'
   },
 
