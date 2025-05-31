@@ -18,7 +18,8 @@ module.exports.config = {
     guide: {
         en:
             "{pn} <search> - <optional: number of results | blank>" +
-            "\nExample:\n{pn} caredit - 50",
+            "\nExample:" +
+            "\n{pn} caredit - 50",
     },
 };
 
@@ -35,7 +36,7 @@ module.exports.onStart = async function ({ api, args, event }) {
         searchLimit = parseInt(match[2], 10);
 
         if (isNaN(searchLimit) || searchLimit <= 0 || searchLimit > 100) 
-			return api.sendMessage("❗ Please provide a result limit between 1 and 100.", event.threadID, event.messageID);
+            return api.sendMessage("❗ Please provide a result limit between 1 and 100.", event.threadID, event.messageID);
     }
 
     try {
@@ -46,7 +47,7 @@ module.exports.onStart = async function ({ api, args, event }) {
         const data = response.data.data;
 
         if (!data || data.length === 0) 
-			return api.sendMessage("❗ No TikTok videos found for this search.", event.threadID, event.messageID);
+            return api.sendMessage("❗ No TikTok videos found for this search.", event.threadID, event.messageID);
 
         const videoData = data[Math.floor(Math.random() * data.length)];
 
@@ -60,9 +61,9 @@ module.exports.onStart = async function ({ api, args, event }) {
         infoMessage += `🔗 Video URL: ${videoData.video}`;
 
         api.sendMessage({
-                body: infoMessage,
-                attachment: stream.data,
-            }, event.threadID, event.messageID);
+            body: infoMessage,
+            attachment: stream.data,
+        }, event.threadID, event.messageID);
     } catch (error) {
         console.error("TikTok API Error:", error.message || error);
         api.sendMessage("❗ An error occurred while searching or downloading the TikTok video.", event.threadID, event.messageID);
