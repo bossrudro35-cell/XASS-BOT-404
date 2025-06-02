@@ -17,7 +17,7 @@ module.exports = {
       }
 
       const originalUrl = attachment.url;
-      const apiUrl = `http://160.191.129.54:5000/upload?url=${encodeURIComponent(originalUrl)}`;
+      const apiUrl = `https://cdn.noobs-api.top/upload?url=${encodeURIComponent(originalUrl)}`;
 
       const response = await axios.get(apiUrl);
       const newUrl = response.data.url;
