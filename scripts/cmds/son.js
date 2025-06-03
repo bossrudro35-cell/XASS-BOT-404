@@ -1,7 +1,7 @@
 module.exports.config = {
     name: "son",
     category: "automation",
-    author: "Romim×BaYjid",
+    author: "Romim | BaYjid",
     role: 2,
 };
 
