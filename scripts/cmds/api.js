@@ -154,7 +154,7 @@ module.exports.onStart = async ({ api, event, message, args, prefix }) => {
       profile.projects.forEach((project, i) => {
         reply += `🔹 ${i + 1}. ${project.name}\n`;
       });
-      reply += `\n📌 Use "${prefix}project <number>" to get full info about that project.`;
+      reply += `\n📌 Use "${prefix}api <number>" to get full info about that project.`;
       return api.sendMessage(reply, event.threadID, event.messageID);
     }
 
