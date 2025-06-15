@@ -25,8 +25,9 @@ module.exports.onChat = async ({ api, event, args }) => {
 > Owner: -𝐗𝐀𝐒𝐒 - 𝐁𝐚𝐘𝐣𝐢𝐝•-🕷️🕸️🫀 (Etx)
 > 𝐗𝐀𝐒𝐒 𝐁𝐎𝐓__/:;)🤍
 🦈🫀`,
-          attachment: await global.utils.getStreamFromURL("https://i.imgur.com/tCUHoib.jpeg"),
-        },
+          attachment: await global.utils.getStreamFromURL("https://i.imgur.com/tCUHoib.jpeg", {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/117.0.0.0 Safari/537.36"
+      }),
         event.threadID,
         event.messageID
       );
