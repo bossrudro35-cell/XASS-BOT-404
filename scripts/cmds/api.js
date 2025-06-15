@@ -1,4 +1,3 @@
-
 const profile = {
   projects: [
     // 🚀 Noobx Tools by ©BaYjid
@@ -27,7 +26,6 @@ const profile = {
       url: 'https://www.noobx.work.gd/translator',
       description: 'Quick language translation tool powered by AI.',
     },
-
     // 📥 Noobs API Tools
     {
       name: 'YouTube Downloader',
@@ -89,7 +87,6 @@ const profile = {
       url: 'https://noobs-api.top/docs',
       description: 'Browse the full Noobs API documentation.',
     },
-
     // 🧠 Mesbah API - AI & Tools
     {
       name: 'GPT-4o Chat',
@@ -136,38 +133,54 @@ const profile = {
 
 module.exports.config = {
   name: "api",
-  version: "6.9",
+  version: "7.0",
   author: "BaYjid",
   countDown: 5,
   role: 0,
   category: "info",
   description: "Get info about your projects",
   guide: {
-    en: "Use {pn}project or {pn}project <number> to get project details",
+    en: "Use {pn} or reply with project number to get details.",
   },
 };
 
-module.exports.onStart = async ({ api, event, message, args, prefix }) => {
+module.exports.onStart = async function ({ event, message }) {
   try {
-    if (!args.length) {
-      let reply = `📦 𝐘𝐨𝐮𝐫 𝐏𝐫𝐨𝐣𝐞𝐜𝐭𝐬 𝐋𝐢𝐬𝐭:\n\n`;
-      profile.projects.forEach((project, i) => {
-        reply += `🔹 ${i + 1}. ${project.name}\n`;
+    let reply = `📦 𝐘𝐨𝐮𝐫 𝐏𝐫𝐨𝐣𝐞𝐜𝐭𝐬 𝐋𝐢𝐬𝐭:\n\n`;
+    profile.projects.forEach((project, i) => {
+      reply += `🔹 ${i + 1}. ${project.name}\n`;
+    });
+    reply += `\n📌 Reply with a number (e.g., 1) to get details.`;
+
+    return message.reply(reply, (err, info) => {
+      global.GoatBot.onReply.set(info.messageID, {
+        commandName: module.exports.config.name,
+        messageID: info.messageID,
+        author: event.senderID
       });
-      reply += `\n📌 Use "${prefix}api <number>" to get full info about that project.`;
-      return api.sendMessage(reply, event.threadID, event.messageID);
+    });
+  } catch (err) {
+    console.error(err);
+    return message.reply("⚠️ Error fetching project list.");
+  }
+};
+
+module.exports.onReply = async function ({ event, message, Reply }) {
+  try {
+    if (Reply.author !== event.senderID) {
+      return message.reply("❌ You're not allowed to reply to this message.");
     }
 
-    const index = parseInt(args[0], 10) - 1;
+    const index = parseInt(event.body, 10) - 1;
     if (isNaN(index) || index < 0 || index >= profile.projects.length) {
-      return api.sendMessage("❌ Invalid project number! Try again with a valid one.", event.threadID, event.messageID);
+      return message.reply("❌ Invalid number! Please enter a valid project number.");
     }
 
     const project = profile.projects[index];
     const msg = `📁 𝗣𝗿𝗼𝗷𝗲𝗰𝘁: ${project.name}\n🔗 𝗨𝗥𝗟: ${project.url}\n📝 𝗗𝗲𝘀𝗰𝗿𝗶𝗽𝘁𝗶𝗼𝗻: ${project.description}\n\n🚀 Go explore it like a pro.`;
-    return api.sendMessage(msg, event.threadID, event.messageID);
+    return message.reply(msg);
   } catch (err) {
     console.error(err);
-    return api.sendMessage("⚠️ Error fetching project info. Try again later!", event.threadID, event.messageID);
+    return message.reply("⚠️ Something went wrong while processing your reply.");
   }
 };
