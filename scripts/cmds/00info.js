@@ -1,3 +1,5 @@
+const axios = require("axios");
+
 module.exports = {
   config: {
     name: "info",
@@ -21,20 +23,17 @@ module.exports = {
     const ownerID = "100005193854879";
 
     if (this.config.author !== "BaYjid") {
-      
       await api.sendMessage(
         `⚠️ Warning! The command "info" was run but author has been changed from "BaYjid" to "${this.config.author}". Possible unauthorized modification!`,
         ownerID
       );
 
-      
       return api.sendMessage(
         "❌🦈 fu*c*k you This command is protected and author mismatch detected. Command will not run.",
         event.threadID
       );
     }
 
-    
     const joinDate = "01-01-2023";
     const botVersion = "v4.5.2";
     const website = "https://noobs-api.top";
@@ -45,7 +44,7 @@ module.exports = {
     const teamName = "𝘛𝘦𝘢𝘮 𝘕𝘰𝘰𝘣𝘴";
     const specialNote = "𝗖𝗼𝗱𝗲 𝘄𝗶𝘁𝗵 𝗵𝗼𝗻𝗼𝗿, 𝗳𝗶𝗴𝗵𝘁 𝘄𝗶𝘁𝗵 𝗵𝗲𝗮𝗿𝘁.";
 
-    const ownerInfo =
+    const ownerInfo = 
 `𝐗𝐀𝐒𝐒 𝐁𝐚𝐘 𝐣𝐢𝐝
 ━━━━━━━━━━━━━━━━
 👤 Name        : ${ownerName} (Itadori Yuji)
@@ -67,6 +66,15 @@ module.exports = {
 🔥 Team        : ${teamName} 🚀
 ━━━━━━━━━━━━━━━━`;
 
-    api.sendMessage(ownerInfo, event.threadID);
+    const response = await axios({
+      method: 'GET',
+      url: "https://i.imgur.com/NBA1omh.jpeg",
+      responseType: 'stream',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+      }
+    });
+
+    api.sendMessage({ body: ownerInfo, attachment: response.data }, event.threadID);
   }
 };
