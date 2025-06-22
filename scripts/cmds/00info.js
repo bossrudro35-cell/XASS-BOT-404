@@ -36,7 +36,7 @@ module.exports = {
 
     const joinDate = "01-01-2023";
     const botVersion = "v4.5.2";
-    const website = "https://noobs-api.top";
+    const website = "https://xass-api.vercel.app/";
     const contact = "+8801638007072";
 
     const ownerName = "𝐁𝐚𝐘𝐣𝐢𝐝";
