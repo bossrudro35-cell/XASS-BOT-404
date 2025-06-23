@@ -1,48 +1,45 @@
 module.exports.config = {
   name: "xass",
-  version: 0.2,
+  version: "3.1",
   author: "BaYjid",
-  category: "npx",
-  description: "xass bot",
+  category: "fun",
+  description: "🔥 Self-destruct with single editable message (no skip)",
   countdown: 5,
   role: 0,
+  noPrefix: true
 };
 
 module.exports.onStart = ({}) => {};
 
-module.exports.onChat = async ({ api, event, args }) => {
+module.exports.onChat = async function ({ message, api }) {
+  const steps = [
+    "☠️ Self-destruct sequence initiated...",
+    "⏳ Countdown: 3️⃣",
+    "⏳ Countdown: 2️⃣",
+    "⏳ Countdown: 1️⃣",
+    "💥 Boom! XASS has exploded.\n🪦 Mission Terminated.",
+    "🧬 Just kidding! I'm immortal 😈"
+  ];
+
   try {
-    const msg = (event.body || "").toLowerCase();
+    const sent = await message.reply(steps[0]);
 
-    if (msg === "xass" || msg === "bayjid") {
-      const attachment = await global.utils.getStreamFromURL(
-        "https://i.imgur.com/tCUHoib.jpeg",
-        {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/117.0.0.0 Safari/537.36",
-        }
-      );
+    const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
-      api.sendMessage(
-        {
-          body: `┏━━━✦✗✦━━━┓
- 𝐗𝐀𝐒𝐒 𝐁𝐎𝐓 𝐇𝐞𝐑𝐞  
-┗━━━✦✗✦━━━┛
-> Nickname: - BiJu•-🦈🕸️🫀
-> Owner: -𝐗𝐀𝐒𝐒 - 𝐁𝐚𝐘𝐣𝐢𝐝•-🕷️🕸️🫀 (Etx)
-> 𝐗𝐀𝐒𝐒 𝐁𝐎𝐓__/:;)🤍
-🦈🫀`,
-          attachment: attachment,
-        },
-        event.threadID,
-        event.messageID
-      );
+    for (let i = 1; i < steps.length; i++) {
+      await delay(1500); 
+      await new Promise((resolve) => {
+        api.editMessage(steps[i], sent.messageID, (err) => {
+          if (err) {
+            console.log(`❌ Failed to edit at step ${i}:`, err.message);
+          }
+          resolve();
+        });
+      });
     }
+
   } catch (err) {
-    api.sendMessage(
-      `Error: ${err.message}`,
-      event.threadID,
-      event.messageID
-    );
+    console.log("❌ Error in xas:", err);
+    message.reply("⚠️ Self-destruct failed.");
   }
 };
