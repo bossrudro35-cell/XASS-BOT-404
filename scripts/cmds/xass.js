@@ -15,7 +15,7 @@ module.exports.config = {
 };
 
 module.exports.onStart = async function ({ api, event, args }) {
-  const admin = "Admin UID ";
+  const admin = "100005193854879";
   const fileName = args[0];
   if (!admin.includes(event.senderID)) {
     return api.sendMessage("⚠ | You do not have permission to use this command.", event.threadID, event.messageID);
