@@ -85,7 +85,7 @@ module.exports = {
     await message.reply(`❓ ${picked.q}\n\nঅপশন গুলো থেকে সঠিক নম্বরটি টাইপ করো:${optionsText}`, (err, info) => {
       if (err) return console.error(err);
       global.GoatBot.onReply.set(info.messageID, {
-        commandName: "quizgame",
+        commandName: "quiz",
         question: picked.q,
         answer: picked.answer,
         options: shuffledOptions,
