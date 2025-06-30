@@ -117,7 +117,7 @@ module.exports = {
     const userData = global.GoatBot.userData[userID];
 
     if (userAnswer === data.answer) {
-      userData.balance += 10;
+      userData.balance += 200;
       await message.reply(`✅ সঠিক উত্তর!\n🎉 তোমার ব্যালেন্স: ${userData.balance} পয়েন্ট`);
     } else {
       await message.reply(`❌ ভুল! সঠিক উত্তর হল: ${data.answer}\n🎉 তোমার ব্যালেন্স: ${userData.balance} পয়েন্ট`);
