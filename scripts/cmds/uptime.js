@@ -1,9 +1,9 @@
 module.exports = {
   config: {
     name: "uptime",
-    aliases: ["upt", "onlinetime"],
+    aliases: ["upt", "up"],
     version: "2.0",
-    author: "Xass Dev",
+    author: "BaYjid",
     role: 0,
     shortDescription: "🕒 Check bot uptime",
     longDescription: "⏳ Dekhun bot kotokkhon dhore online ache",
@@ -29,8 +29,8 @@ module.exports = {
 
     const box = `
 ╭──[ 🤖 BOT UPTIME ]──╮
-│ 🟢 Online: ${uptimeString.padStart(15, " ")} │
-╰───────────────────╯
+│ 🟢 Online: ${uptimeString.padStart(15, " ")} 
+╰─────────────────╯
 `;
 
     message.reply(box);
