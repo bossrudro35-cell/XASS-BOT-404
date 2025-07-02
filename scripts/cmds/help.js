@@ -71,7 +71,7 @@ module.exports = {
       return message.reply(`🚫 𝗡𝗼 𝗰𝗼𝗺𝗺𝗮𝗻𝗱𝘀 𝗳𝗼𝘂𝗻𝗱 𝗳𝗼𝗿 ${filterMsg}.`);
     }
 
-    let msg = `🌸 𝗠𝗔𝗟𝗩𝗜𝗡𝗔 𝗕𝗢𝗧 𝗠𝗘𝗡𝗨 🌸\n`;
+    let msg = 🌸 𝗠𝗔𝗟𝗩𝗜𝗡𝗔 𝗕𝗢𝗧 𝗠𝗘𝗡𝗨 🌸\n;
 
     Object.keys(categories).sort().forEach(category => {
       msg += `\n🕷️ 𝗖𝗮𝘁𝗲𝗴𝗼𝗿𝘆: ${category.toUpperCase()}\n`;
