@@ -74,14 +74,14 @@ module.exports = {
     let msg = `🌸 𝗠𝗔𝗟𝗩𝗜𝗡𝗔 𝗕𝗢𝗧 𝗠𝗘𝗡𝗨 🌸\n`;
 
     Object.keys(categories).sort().forEach(category => {
-      msg += `\n🕷️ 𝗖𝗮𝘁𝗲𝗴𝗼𝗿𝘆: *${category.toUpperCase()}*\n`;
+      msg += `\n🕷️ 𝗖𝗮𝘁𝗲𝗴𝗼𝗿𝘆: ${category.toUpperCase()}\n`;
       categories[category].sort().forEach(cmd => {
-        msg += ` ⤷ 🎟️ 𝗖𝗺𝗱: \`${cmd}\`\n`;
+        msg +=  ⤷ 🎟️ 𝗖𝗺𝗱: \${cmd}\\n;
       });
     });
 
-    msg += `\n🌐 𝗧𝗼𝘁𝗮𝗹 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀: ${total}`;
-    msg += `\n🔍 𝗧𝗶𝗽: \`${prefix}help <command>\` 𝗳𝗼𝗿 𝗱𝗲𝘁𝗮𝗶𝗹𝘀`;
+    msg += \n🌐 𝗧𝗼𝘁𝗮𝗹 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀: ${total};
+    msg += \n🔍 𝗧𝗶𝗽: \${prefix}help <command>\ 𝗳𝗼𝗿 𝗱𝗲𝘁𝗮𝗶𝗹𝘀;
 
     await message.reply(msg);
   },
