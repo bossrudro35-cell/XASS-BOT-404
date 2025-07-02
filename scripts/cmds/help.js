@@ -28,7 +28,7 @@ module.exports = {
     } else if (args.length > 0 && !args[0].startsWith("-")) {
       const commandName = args[0].toLowerCase();
       const command = commands.get(commandName) || commands.get(aliases.get(commandName));
-      if (!command) return message.reply(`❌ Command "${commandName}" not found.`);
+      if (!command) return message.reply(`❌ 𝗖𝗼𝗺𝗺𝗮𝗻𝗱 "${commandName}" 𝗻𝗼𝘁 𝗳𝗼𝘂𝗻𝗱.`);
 
       const configCommand = command.config;
       const roleText = roleTextToString(configCommand.role);
@@ -37,22 +37,20 @@ module.exports = {
         .replace(/{n}/g, configCommand.name);
 
       return message.reply(
-`┏━━━━━━━━━┓
-┃𝐂𝐎𝐌𝐌𝐀𝐍𝐃 🦈 𝐈𝐍𝐅𝐎
-┣━━━━━━━━━┫
-┃ 🔹 𝐍𝐚𝐦𝐞: ${configCommand.name}
-┃ 📄 𝐃𝐞𝐬𝐜: ${configCommand.longDescription?.en || "No description"}
-┃ 🆔 𝐀𝐥𝐢𝐚𝐬𝐞𝐬: ${configCommand.aliases?.join(", ") || "None"}
-┃ 📦 𝐕𝐞𝐫𝐬𝐢𝐨𝐧: ${configCommand.version || "1.0"}
-┃ 🛡️ 𝐑𝐨𝐥𝐞: ${roleText}
-┃ ⏱️ 𝐂𝐨𝐨𝐥𝐝𝐨𝐰𝐧: ${configCommand.countDown || 1}s
-┃ 🧠 𝐀𝐮𝐭𝐡𝐨𝐫: ${configCommand.author || "Unknown"}
-┃ 💠 𝐔𝐬𝐚𝐠𝐞: ${usage}
-┗━━━━━━━━━┛`
+`╔═━「 🦋 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗗𝗘𝗧𝗔𝗜𝗟𝗦 」━═╗
+🧸 𝗡𝗮𝗺𝗲: ${configCommand.name}
+📜 𝗗𝗲𝘀𝗰: ${configCommand.longDescription?.en || "No description"}
+🔁 𝗔𝗹𝗶𝗮𝘀𝗲𝘀: ${configCommand.aliases?.join(", ") || "None"}
+📦 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: ${configCommand.version || "1.0"}
+🛡️ 𝗥𝗼𝗹𝗲: ${roleText}
+⏳ 𝗖𝗼𝗼𝗹𝗱𝗼𝘄𝗻: ${configCommand.countDown || 1}s
+👑 𝗔𝘂𝘁𝗵𝗼𝗿: ${configCommand.author || "Unknown"}
+📘 𝗨𝘀𝗮𝗴𝗲: ${usage}
+╚════════════════════╝`
       );
     }
 
-    // If no specific command requested, list available commands
+    // If no specific command requested, list all
     const categories = {};
     let total = 0;
 
@@ -70,20 +68,20 @@ module.exports = {
 
     if (total === 0) {
       const filterMsg = filterAuthor ? `author "${filterAuthor}"` : `category "${filterCategory}"`;
-      return message.reply(`❌ No commands found for ${filterMsg}.`);
+      return message.reply(`🚫 𝗡𝗼 𝗰𝗼𝗺𝗺𝗮𝗻𝗱𝘀 𝗳𝗼𝘂𝗻𝗱 𝗳𝗼𝗿 ${filterMsg}.`);
     }
 
-    let msg = `┏━━[ 𝐌𝐚𝐥𝐯𝐢𝐧𝐚 𝐁𝐛'𝐞 ]━━┓\n`;
+    let msg = `🌸 𝗠𝗔𝗟𝗩𝗜𝗡𝗔 𝗕𝗢𝗧 𝗠𝗘𝗡𝗨 🌸\n`;
 
     Object.keys(categories).sort().forEach(category => {
-      msg += `┃\n┃ ✦ 𝐂𝐚𝐭𝐞𝐠𝐨𝐫𝐲: ${category.toUpperCase()}\n`;
-      categories[category].sort().forEach(cmd => msg += `┃    ⤷ ${cmd}\n`);
+      msg += `\n🕷️ 𝗖𝗮𝘁𝗲𝗴𝗼𝗿𝘆: *${category.toUpperCase()}*\n`;
+      categories[category].sort().forEach(cmd => {
+        msg += ` ⤷ 🎟️ 𝗖𝗺𝗱: \`${cmd}\`\n`;
+      });
     });
 
-    msg += `┃\n┣━━━━━━━━━━━━┫\n`;
-    msg += `┃ 🦈 𝐓𝐨𝐭𝐚𝐥 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬: ${total}\n`;
-    msg += `┃ 📘 𝐔𝐬𝐚𝐠𝐞: "${prefix}help <command>"\n`;
-    msg += `┗━━━━━━━━━━━━━┛`;
+    msg += `\n🌐 𝗧𝗼𝘁𝗮𝗹 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀: ${total}`;
+    msg += `\n🔍 𝗧𝗶𝗽: \`${prefix}help <command>\` 𝗳𝗼𝗿 𝗱𝗲𝘁𝗮𝗶𝗹𝘀`;
 
     await message.reply(msg);
   },
@@ -91,9 +89,9 @@ module.exports = {
 
 function roleTextToString(role) {
   switch (role) {
-    case 0: return "🌎 All Users";
-    case 1: return "👑 Group Admins";
-    case 2: return "🤖 Bot Admins";
-    default: return "❓ Unknown Role";
+    case 0: return "🌍 𝗔𝗹𝗹 𝗨𝘀𝗲𝗿𝘀";
+    case 1: return "👑 𝗚𝗿𝗼𝘂𝗽 𝗔𝗱𝗺𝗶𝗻𝘀";
+    case 2: return "🤖 𝗕𝗼𝘁 𝗔𝗱𝗺𝗶𝗻𝘀";
+    default: return "❓ 𝗨𝗻𝗸𝗻𝗼𝘄𝗻";
   }
 }
