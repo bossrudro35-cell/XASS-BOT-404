@@ -14,39 +14,36 @@ module.exports = {
     category: "⚙️ Configuration",
     guide: {
       en:
-        "╔═[ PREFIX HELP ]═╗\n" +
+        "╔═[ 🌸 𝐌𝐚𝐥𝐯𝐢𝐧𝐚 𝐁𝐛'𝐞 🌸 PREFIX HELP ]═╗\n" +
         "📌 {pn} <new prefix>: Change group prefix\n" +
         "📌 {pn} <new prefix> -g: Change global prefix (admin only)\n" +
         "🛠️ {pn} reset: Reset group prefix to default\n" +
         "🕹️ Type \"prefix\" to see current prefix info\n" +
-        "╚═════════════════╝"
+        "╚════════════════════════════╝"
     }
   },
 
   langs: {
     en: {
-      reset: "✅ Your group prefix has been reset to default: %1",
+      reset: "✅ Group prefix has been reset to default: %1",
       onlyAdmin: "⚠️ Only bot admins can change the global prefix!",
-      onlyAuthor: "⛔️ Sorry, only BaYjid can change the prefix!",
+      onlyAuthor: "⛔️ Sorry, only 🌸 𝐌𝐚𝐥𝐯𝐢𝐧𝐚 𝐁𝐛'𝐞 🌸 can change the prefix!",
       confirmGlobal: "🛡️ React to confirm changing the 𝐆𝐋𝐎𝐁𝐀𝐋 prefix.",
       confirmThisThread: "💬 React to confirm changing the 𝐆𝐑𝐎𝐔𝐏 prefix.",
       successGlobal: "✅ Global prefix updated to: %1",
       successThisThread: "✅ Group prefix updated to: %1",
       myPrefix:
-        "╔═[ 📌 𝐏𝐑𝐄𝐅𝐈𝐗 𝐈𝐍𝐅𝐎 ]═╗\n" +
+        "╔═[  🌸 𝐌𝐚𝐥𝐯𝐢𝐧𝐚 𝐁𝐛'𝐞 🌸 ]═╗\n" +
         "🌐 𝐆𝐥𝐨𝐛𝐚𝐥 𝐏𝐫𝐞𝐟𝐢𝐱: %1\n" +
         "💬 𝐆𝐫𝐨𝐮𝐩 𝐏𝐫𝐞𝐟𝐢𝐱: %2\n" +
         "⏰ 𝐓𝐢𝐦𝐞: %3\n" +
-        "🧑 𝐋𝐚𝐬𝐭 𝐄𝐝𝐢𝐭𝐞𝐝 𝐁𝐲: %4\n" +
-        "📅 𝐃𝐚𝐭𝐞 𝐎𝐟 𝐂𝐡𝐚𝐧𝐠𝐞: %5\n" +
-        "╚═════════════════╝"
+        "╚════════════╝"
     }
   },
 
   onStart: async function ({ message, role, args, commandName, event, threadsData, getLang }) {
     if (!args[0]) return message.SyntaxError();
 
-    // Block prefix changes if sender is NOT BaYjid
     if (event.senderID !== BAJYID_ID) {
       return message.reply(getLang("onlyAuthor"));
     }
@@ -100,18 +97,13 @@ module.exports = {
     if (content !== "prefix") return;
 
     const serverTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
-    const threadData = await threadsData.get(event.threadID);
     const prefix = utils.getPrefix(event.threadID);
-    const editor = threadData?.data?.prefixEditor || "Unknown";
-    const date = threadData?.data?.prefixChangedAt || "N/A";
 
     return message.reply(getLang(
       "myPrefix",
       global.GoatBot.config.prefix,
       prefix,
-      serverTime,
-      editor,
-      date
+      serverTime
     ));
   }
 };
