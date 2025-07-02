@@ -28,37 +28,36 @@ module.exports = {
     } else if (args.length > 0 && !args[0].startsWith("-")) {
       const commandName = args[0].toLowerCase();
       const command = commands.get(commandName) || commands.get(aliases.get(commandName));
-      if (!command) return message.reply(`❌ 𝗖𝗼𝗺𝗺𝗮𝗻𝗱 "${commandName}" 𝗻𝗼𝘁 𝗳𝗼𝘂𝗻𝗱.`);
+      if (!command) return message.reply(`❌ 𝘾𝙤𝙢𝙢𝙖𝙣𝙙 "${commandName}" 𝙣𝙤𝙩 𝙛𝙤𝙪𝙣𝙙.`);
 
-      const configCommand = command.config;
-      const roleText = roleTextToString(configCommand.role);
-      const usage = (configCommand.guide?.en || "No guide available.")
+      const config = command.config;
+      const roleText = roleTextToString(config.role);
+      const usage = (config.guide?.en || "No guide available.")
         .replace(/{pn}/g, prefix)
-        .replace(/{n}/g, configCommand.name);
+        .replace(/{n}/g, config.name);
 
       return message.reply(
-`╔═━「 🦋 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗗𝗘𝗧𝗔𝗜𝗟𝗦 」━═╗
-🧸 𝗡𝗮𝗺𝗲: ${configCommand.name}
-📜 𝗗𝗲𝘀𝗰: ${configCommand.longDescription?.en || "No description"}
-🔁 𝗔𝗹𝗶𝗮𝘀𝗲𝘀: ${configCommand.aliases?.join(", ") || "None"}
-📦 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: ${configCommand.version || "1.0"}
-🛡️ 𝗥𝗼𝗹𝗲: ${roleText}
-⏳ 𝗖𝗼𝗼𝗹𝗱𝗼𝘄𝗻: ${configCommand.countDown || 1}s
-👑 𝗔𝘂𝘁𝗵𝗼𝗿: ${configCommand.author || "Unknown"}
-📘 𝗨𝘀𝗮𝗴𝗲: ${usage}
+`╔═━「 🦋 𝙲𝙾𝙼𝙼𝙰𝙽𝙳 𝙳𝙴𝚃𝙰𝙸𝙻𝚂 」━═╗
+🧸 𝙽𝚊𝚖𝚎: ${config.name}
+📜 𝙳𝚎𝚜𝚌: ${config.longDescription?.en || "No description"}
+🔁 𝙰𝚕𝚒𝚊𝚜𝚎𝚜: ${config.aliases?.join(", ") || "None"}
+📦 𝚅𝚎𝚛𝚜𝚒𝚘𝚗: ${config.version || "1.0"}
+🛡️ 𝚁𝚘𝚕𝚎: ${roleText}
+⏳ 𝙲𝚘𝚘𝚕𝚍𝚘𝚠𝚗: ${config.countDown || 1}s
+👑 𝙰𝚞𝚝𝚑𝚘𝚛: ${config.author || "Unknown"}
+📘 𝚄𝚜𝚊𝚐𝚎: ${usage}
 ╚════════════════════╝`
       );
     }
 
-    // If no specific command requested, list all
     const categories = {};
     let total = 0;
 
-    for (const [name, value] of commands) {
-      const config = value.config;
+    for (const [name, command] of commands) {
+      const config = command.config;
       if (config.role > 1 && role < config.role) continue;
-      if (filterAuthor && (config.author?.toLowerCase() !== filterAuthor)) continue;
-      if (filterCategory && (config.category?.toLowerCase() !== filterCategory)) continue;
+      if (filterAuthor && config.author?.toLowerCase() !== filterAuthor) continue;
+      if (filterCategory && config.category?.toLowerCase() !== filterCategory) continue;
 
       const category = config.category || "Uncategorized";
       if (!categories[category]) categories[category] = [];
@@ -68,20 +67,20 @@ module.exports = {
 
     if (total === 0) {
       const filterMsg = filterAuthor ? `author "${filterAuthor}"` : `category "${filterCategory}"`;
-      return message.reply(`🚫 𝗡𝗼 𝗰𝗼𝗺𝗺𝗮𝗻𝗱𝘀 𝗳𝗼𝘂𝗻𝗱 𝗳𝗼𝗿 ${filterMsg}.`);
+      return message.reply(`🚫 𝙉𝙤 𝙘𝙤𝙢𝙢𝙖𝙣𝙙𝙨 𝙛𝙤𝙪𝙣𝙙 𝙛𝙤𝙧 ${filterMsg}.`);
     }
 
-    let msg = 🌸 𝗠𝗔𝗟𝗩𝗜𝗡𝗔 𝗕𝗢𝗧 𝗠𝗘𝗡𝗨 🌸\n;
+    let msg = `🌸 𝙈𝘼𝙇𝙑𝙄𝙉𝘼 𝘽𝙊𝙏 𝙈𝙀𝙉𝙐 🌸\n`;
 
     Object.keys(categories).sort().forEach(category => {
-      msg += `\n🕷️ 𝗖𝗮𝘁𝗲𝗴𝗼𝗿𝘆: ${category.toUpperCase()}\n`;
+      msg += `\n🕷️ 𝘾𝙖𝙩𝙚𝙜𝙤𝙧𝙮: ${category.toUpperCase()}\n`;
       categories[category].sort().forEach(cmd => {
-        msg +=  ⤷ 🎟️ 𝗖𝗺𝗱: \${cmd}\\n;
+        msg += `⤷ 🎟️ 𝘾𝙢𝙙: ${cmd}\n`;
       });
     });
 
-    msg += \n🌐 𝗧𝗼𝘁𝗮𝗹 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀: ${total};
-    msg += \n🔍 𝗧𝗶𝗽: \${prefix}help <command>\ 𝗳𝗼𝗿 𝗱𝗲𝘁𝗮𝗶𝗹𝘀;
+    msg += `\n🌐 𝚃𝚘𝚝𝚊𝚕 𝙲𝚘𝚖𝚖𝚊𝚗𝚍𝚜: ${total}`;
+    msg += `\n🔍 𝚃𝚒𝚙: ${prefix}help <command> 𝚏𝚘𝚛 𝚍𝚎𝚝𝚊𝚒𝚕𝚜`;
 
     await message.reply(msg);
   },
@@ -89,9 +88,9 @@ module.exports = {
 
 function roleTextToString(role) {
   switch (role) {
-    case 0: return "🌍 𝗔𝗹𝗹 𝗨𝘀𝗲𝗿𝘀";
-    case 1: return "👑 𝗚𝗿𝗼𝘂𝗽 𝗔𝗱𝗺𝗶𝗻𝘀";
-    case 2: return "🤖 𝗕𝗼𝘁 𝗔𝗱𝗺𝗶𝗻𝘀";
-    default: return "❓ 𝗨𝗻𝗸𝗻𝗼𝘄𝗻";
+    case 0: return "🌍 𝘼𝙡𝙡 𝙐𝙨𝙚𝙧𝙨";
+    case 1: return "👑 𝙂𝙧𝙤𝙪𝙥 𝘼𝙙𝙢𝙞𝙣𝙨";
+    case 2: return "🤖 𝘽𝙤𝙩 𝘼𝙙𝙢𝙞𝙣𝙨";
+    default: return "❓ 𝙐𝙣𝙠𝙣𝙤𝙬𝙣";
   }
 }
