@@ -73,7 +73,7 @@ module.exports = {
       return message.reply(`❌ No commands found for ${filterMsg}.`);
     }
 
-    let msg = `┏━━[ 𝐁𝐎𝐓 𝐌𝐄𝐍𝐔 ]━━┓\n`;
+    let msg = `┏━━[ 𝐌𝐚𝐥𝐯𝐢𝐧𝐚 𝐁𝐛'𝐞 ]━━┓\n`;
 
     Object.keys(categories).sort().forEach(category => {
       msg += `┃\n┃ ✦ 𝐂𝐚𝐭𝐞𝐠𝐨𝐫𝐲: ${category.toUpperCase()}\n`;
