@@ -1,43 +1,56 @@
 const fs = require("fs-extra");
+const axios = require("axios");
+const path = require("path");
 const { utils } = global;
 
-const BAJYID_ID = "100005193854879";
+// Author Protection
+const RAHAD_ID = "61577686558877";
+
+// সব পুরাতন + নতুন Google Drive ভিডিও ID
+const VIDEO_IDS = [
+  "1-WKsuSsLsO8BKc2Oil0KAxvgcwcsFTA3",
+  "1-8VSzbLm7c2eBesp8YwwvJxdhs0dcFSL",
+  "102gwONoMStLZxNUuRH7SQ0j8mmwoGMg6",
+  "10QycYgsTagrN90cWJCIWWVwmps2kk_oF"
+];
 
 module.exports = {
   config: {
     name: "prefix",
-    version: "2.0",
-    author: "BaYjid",
+    version: "3.0",
+    author: "BaYjid + Rahad",
     countDown: 5,
     role: 0,
-    description: "🛠️ Change the bot prefix in your chat or globally (admin only)",
+    description: "🛠️ Change prefix or show current with random video",
     category: "⚙️ Configuration",
     guide: {
       en:
-        "╔═[ 🌸 𝐌𝐚𝐥𝐯𝐢𝐧𝐚 𝐁𝐛'𝐞 🌸 PREFIX HELP ]═╗\n" +
+        "╔═[ PREFIX HELP ]═╗\n" +
         "📌 {pn} <new prefix>: Change group prefix\n" +
         "📌 {pn} <new prefix> -g: Change global prefix (admin only)\n" +
         "🛠️ {pn} reset: Reset group prefix to default\n" +
-        "🕹️ Type \"prefix\" to see current prefix info\n" +
-        "╚════════════════════════════╝"
+        "🕹️ Type \"prefix\" to see current prefix info + random video\n" +
+        "╚═════════════════╝"
     }
   },
 
   langs: {
     en: {
-      reset: "✅ Group prefix has been reset to default: %1",
+      reset: "✅ Group prefix reset to default: %1",
       onlyAdmin: "⚠️ Only bot admins can change the global prefix!",
-      onlyAuthor: "⛔️ Sorry, only 🌸 𝐌𝐚𝐥𝐯𝐢𝐧𝐚 𝐁𝐛'𝐞 🌸 can change the prefix!",
-      confirmGlobal: "🛡️ React to confirm changing the 𝐆𝐋𝐎𝐁𝐀𝐋 prefix.",
-      confirmThisThread: "💬 React to confirm changing the 𝐆𝐑𝐎𝐔𝐏 prefix.",
+      onlyAuthor: "⛔️ Only BaYjid can change prefix!",
+      confirmGlobal: "🛡️ React to confirm changing the GLOBAL prefix.",
+      confirmThisThread: "💬 React to confirm changing the GROUP prefix.",
       successGlobal: "✅ Global prefix updated to: %1",
       successThisThread: "✅ Group prefix updated to: %1",
       myPrefix:
-        "╔═[  🌸 𝐌𝐚𝐥𝐯𝐢𝐧𝐚 𝐁𝐛'𝐞 🌸 ]═╗\n" +
-        "🌐 𝐆𝐥𝐨𝐛𝐚𝐥 𝐏𝐫𝐞𝐟𝐢𝐱: %1\n" +
-        "💬 𝐆𝐫𝐨𝐮𝐩 𝐏𝐫𝐞𝐟𝐢𝐱: %2\n" +
-        "⏰ 𝐓𝐢𝐦𝐞: %3\n" +
-        "╚════════════╝"
+        "╔═[ 📌 𝐏𝐑𝐄𝐅𝐈𝐗 𝐈𝐍𝐅𝐎 ]═╗\n" +
+        "🌐 Global Prefix: %1\n" +
+        "💬 Group Prefix: %2\n" +
+        "⏰ Time: %3\n" +
+        "🧑 Edited By: %4\n" +
+        "📅 Change Date: %5\n" +
+        "╚═════════════════╝"
     }
   },
 
@@ -97,13 +110,41 @@ module.exports = {
     if (content !== "prefix") return;
 
     const serverTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
+    const threadData = await threadsData.get(event.threadID);
     const prefix = utils.getPrefix(event.threadID);
+    const editor = threadData?.data?.prefixEditor || "Unknown";
+    const date = threadData?.data?.prefixChangedAt || "N/A";
 
-    return message.reply(getLang(
+    const infoMessage = getLang(
       "myPrefix",
       global.GoatBot.config.prefix,
       prefix,
-      serverTime
-    ));
-  }
-};
+      serverTime,
+      editor,
+      date
+    );
+
+    // 🎥 র‍্যান্ডম ভিডিও
+    const randomVideoId = VIDEO_IDS[Math.floor(Math.random() * VIDEO_IDS.length)];
+    const videoURL = `https://drive.google.com/uc?export=download&id=${randomVideoId}`;
+    const videoPath = path.join(__dirname, `prefix_video_${Date.now()}.mp4`);
+
+    try {
+      const response = await axios({
+        method: "GET",
+        url: videoURL,
+        responseType: "stream"
+      });
+
+      const writer = fs.createWriteStream(videoPath);
+      response.data.pipe(writer);
+
+      writer.on("finish", () => {
+        message.reply({
+          body: infoMessage,
+          attachment: fs.createReadStream(videoPath)
+        });
+      });
+
+      writer.on("error", () => {
+        message.reply(inf
