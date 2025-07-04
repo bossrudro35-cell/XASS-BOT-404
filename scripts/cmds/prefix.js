@@ -4,9 +4,9 @@ const path = require("path");
 const { utils } = global;
 
 // Author Protection
-const RAHAD_ID = "61577686558877";
+const BAJYID_ID = "100005193854879";
 
-// সব পুরাতন + নতুন Google Drive ভিডিও ID
+// Google Drive Video IDs
 const VIDEO_IDS = [
   "1-WKsuSsLsO8BKc2Oil0KAxvgcwcsFTA3",
   "1-8VSzbLm7c2eBesp8YwwvJxdhs0dcFSL",
@@ -100,7 +100,11 @@ module.exports = {
 
     await threadsData.set(event.threadID, newPrefix, "data.prefix");
     await threadsData.set(event.threadID, event.userID, "data.prefixEditor");
-    await threadsData.set(event.threadID, new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" }), "data.prefixChangedAt");
+    await threadsData.set(
+      event.threadID,
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" }),
+      "data.prefixChangedAt"
+    );
 
     return message.reply(getLang("successThisThread", newPrefix));
   },
@@ -124,7 +128,6 @@ module.exports = {
       date
     );
 
-    // 🎥 র‍্যান্ডম ভিডিও
     const randomVideoId = VIDEO_IDS[Math.floor(Math.random() * VIDEO_IDS.length)];
     const videoURL = `https://drive.google.com/uc?export=download&id=${randomVideoId}`;
     const videoPath = path.join(__dirname, `prefix_video_${Date.now()}.mp4`);
@@ -147,4 +150,11 @@ module.exports = {
       });
 
       writer.on("error", () => {
-        message.reply(inf
+        message.reply(infoMessage + "\n⚠️ ভিডিও পাঠাতে সমস্যা হয়েছে।");
+      });
+    } catch (err) {
+      console.error("Video download failed:", err);
+      message.reply(infoMessage + "\n⚠️ ভিডিও ডাউনলোড করতে ব্যর্থ।");
+    }
+  }
+};
