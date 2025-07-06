@@ -21,7 +21,7 @@
   },
   "adminBot": [
     "61577686558877",
-    "61559783984610",
+    "61572930974640",
     "",
     "",
     "",
@@ -33,7 +33,7 @@
     "enable": true,
     "HandelReactionMain": [
       "61577686558877",
-    "61559783984610",
+    "61572930974640",
     "",
     "",
     "",
@@ -45,7 +45,7 @@
   "whiteListMode": {
     "enable": true,
     "whiteListIds": ["61577686558877",
-"61559783984610",
+"61572930974640",
       ""
     ],
     "notes": "if you enable this feature, only the ids in the whiteListIds list can use the bot"
