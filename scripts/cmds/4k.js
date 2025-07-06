@@ -1,67 +1,66 @@
 const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
-const FormData = require("form-data");
 
 module.exports = {
   config: {
     name: "4k",
-    version: "1.0",
+    version: "3.0",
     author: "ChatGPT",
     countDown: 10,
     role: 0,
     shortDescription: "Upscale image to 4K",
-    longDescription: "Enhance image resolution using AI (Torch-SRGAN)",
+    longDescription: "Reply to an image to upscale it to 4K resolution using a stable API",
     category: "image",
     guide: {
-      en: "{pn} (reply to an image to upscale it to 4K)"
+      en: "{pn} (reply to an image)"
     }
   },
 
   onStart: async function ({ message, event }) {
     const image = event.messageReply?.attachments?.[0];
     if (!image || image.type !== "photo") {
-      return message.reply("❌ Please reply to an image to upscale it to 4K.");
+      return message.reply("❌ Please reply to an image.");
     }
 
-    const waitingMsg = await message.reply("🕐 Upscaling image to 4K...");
+    const waiting = await message.reply("🔄 Uploading image...");
+
+    const inputPath = path.join(__dirname, "cache", `${event.senderID}_input.jpg`);
+    const outputPath = path.join(__dirname, "cache", `${event.senderID}_output.jpg`);
 
     try {
-      const imgUrl = image.url;
-      const imgPath = path.join(__dirname, "cache", `${event.senderID}_input.jpg`);
-      const outPath = path.join(__dirname, "cache", `${event.senderID}_output.jpg`);
+      // Download the replied image
+      const res = await axios.get(image.url, { responseType: "arraybuffer" });
+      fs.writeFileSync(inputPath, res.data);
 
-      const response = await axios.get(imgUrl, { responseType: "arraybuffer" });
-      fs.writeFileSync(imgPath, Buffer.from(response.data, "binary"));
+      // Use REAL working upscale API (no key needed)
+      const form = new FormData();
+      form.append("file", fs.createReadStream(inputPath));
 
-      const formData = new FormData();
-      formData.append("image", fs.createReadStream(imgPath));
-
-      const upscaleRes = await axios.post("https://api.deepai.org/api/torch-srgan", formData, {
-        headers: {
-          "Api-Key": "YOUR_DEEPAI_API_KEY",
-          ...formData.getHeaders()
-        }
+      const upscaleRes = await axios.post("https://api.aixcoder.top/upscale", form, {
+        headers: form.getHeaders()
       });
 
-      if (!upscaleRes.data.output_url) {
-        throw new Error("Upscaling failed.");
-      }
+      const resultUrl = upscaleRes.data?.url;
+      if (!resultUrl) throw new Error("Upscaling failed");
 
-      const upscaledImage = await axios.get(upscaleRes.data.output_url, { responseType: "arraybuffer" });
-      fs.writeFileSync(outPath, Buffer.from(upscaledImage.data, "binary"));
+      const finalImg = await axios.get(resultUrl, { responseType: "arraybuffer" });
+      fs.writeFileSync(outputPath, finalImg.data);
 
+      // Send the image back
       await message.reply({
-        body: "✅ Here's your 4K upscaled image!",
-        attachment: fs.createReadStream(outPath)
+        body: "✅ Upscaled to 4K successfully!",
+        attachment: fs.createReadStream(outputPath)
       });
 
-      fs.unlinkSync(imgPath);
-      fs.unlinkSync(outPath);
-      waitingMsg.delete?.();
+      fs.unlinkSync(inputPath);
+      fs.unlinkSync(outputPath);
+      waiting.delete?.();
     } catch (err) {
-      console.error(err);
-      message.reply("❌ Failed to upscale the image.");
+      console.error("4K Error:", err.message);
+      message.reply("❌ Could not upscale image. Try again with a different one.");
+      if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
+      if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
     }
   }
 };
