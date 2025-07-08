@@ -4,68 +4,92 @@ const cheerio = require("cheerio");
 module.exports = {
   config: {
     name: "stalk",
-    version: "2.0",
-    author: "GPT Stable Mod",
-    countDown: 3,
+    version: "5.1",
+    author: "GPT BossMod",
     role: 0,
-    shortDescription: "Stalk FB user (no token)",
-    longDescription: "Get public Facebook info using UID or tag without token",
+    shortDescription: "Stalk FB with profile pic + info",
+    longDescription: "Get Facebook info + profile and cover photo from UID / mention / reply",
     category: "info",
     guide: {
-      en: "{pn} <uid> or reply/tag a user"
+      en: "{pn} <uid | profile link | @mention> or reply to a message"
     }
   },
 
   onStart: async function ({ event, message, args }) {
-    let uid = args[0] || Object.keys(event.mentions)[0];
-    if (!uid) return message.reply("📌 Please provide a UID or mention someone.");
+    let uid;
 
-    if (!/^\d{10,20}$/.test(uid)) return message.reply("❗ Invalid UID format.");
+    // ✅ 1. Reply diye use korle
+    if (event.type === "message_reply") {
+      uid = event.messageReply.senderID;
+    }
 
-    const url = `https://mbasic.facebook.com/profile.php?id=${uid}`;
+    // ✅ 2. Naile argument/mention theke UID
+    else {
+      uid = args[0] || Object.keys(event.mentions)[0];
+    }
+
+    if (!uid) return message.reply("❗ Provide a UID, FB link, or reply to someone.");
+
+    // ✅ 3. Link banai
+    const profileUrl = uid.includes("facebook.com")
+      ? uid.replace("www.", "mbasic.")
+      : `https://mbasic.facebook.com/profile.php?id=${uid}`;
+
+    message.reply("🔍 Scraping FB profile, wait...");
 
     try {
-      const res = await axios.get(url, {
-        headers: {
-          "User-Agent": "Mozilla/5.0"
-        }
+      // 🔍 Scrape shuru
+      const res = await axios.get(profileUrl, {
+        headers: { "User-Agent": "Mozilla/5.0" }
       });
 
       const $ = cheerio.load(res.data);
-
-      const name = $("title").text() || "No data!";
+      const name = $("title").text()?.split("|")[0]?.trim() || "No data!";
       const infoText = $("div").text();
 
-      const getInfo = (label) => {
-        const regex = new RegExp(label + ": (.*?)\\n");
-        const match = infoText.match(regex);
+      // 🔍 Info fetch function
+      const getField = (label) => {
+        const match = infoText.match(new RegExp(`${label}:\\s*(.*?)\\n`));
         return match ? match[1] : "No data!";
       };
 
-      const output = `♻️ 𝗙𝗔𝗖𝗘𝗕𝗢𝗢𝗞 𝗔𝗖𝗖 𝗜𝗡𝗙𝗢 ♻️
-━━━━━━━━━━━━━━━━━━
+      // ✅ Profile & cover photo
+      const dp = $('img[src*="profile_pic"]').attr("src") || null;
+      const cover = $('img[src*="cover"]').attr("src") || null;
+
+      // 📋 Info message
+      const replyText = `♻️ 𝗙𝗔𝗖𝗘𝗕𝗢𝗢𝗞 𝗔𝗖𝗖 𝗜𝗡𝗙𝗢 ♻️
+━━━━━━━━━━━━━
 ➥Name: ${name}
 ➥UID: ${uid}
-➥Username: No data!
-➥Relationship: ${getInfo("Relationship")}
-➥Birthday: ${getInfo("Birthday")}
-➥Followers: ${getInfo("followers") || "No data!"}
-➥Home: ${getInfo("Lives in")}
-➥Local: en_GB
-➥Love: ${getInfo("Love")}
-➥Verified: false
-➥Web: ${getInfo("Website")}
-➥Quotes: ${getInfo("Quote")}
-➥About: ${getInfo("About")}
-➥Works At: ${getInfo("Works at")}
-➥gender: Boy🧍‍♂️
-➥Nickname: ${getInfo("Nickname")}
+➥Relationship: ${getField("Relationship")}
+➥Birthday: ${getField("Birthday")}
+➥Followers: ${getField("followers")}
+➥Home: ${getField("Lives in") || "No data"}
+➥Works At: ${getField("Works at")}
+➥Gender: ${getField("Gender") || "No data!"}
+➥Nickname: ${getField("Nickname")}
 ➥Account Creation Date: [Unknown] || [Unknown]
-━━━━━━━━━━━━━━━━━━`;
+━━━━━━━━━━━━━`;
 
-      return message.reply(output);
-    } catch (e) {
-      return message.reply("❌ Error fetching data. Private profile or FB blocked bot.");
+      // 📎 Attach image
+      const attachment = [];
+
+      if (dp) {
+        const dpImg = (await axios.get(dp, { responseType: "stream" })).data;
+        attachment.push(dpImg);
+      }
+
+      if (cover) {
+        const coverImg = (await axios.get(cover, { responseType: "stream" })).data;
+        attachment.push(coverImg);
+      }
+
+      return message.reply({ body: replyText, attachment });
+
+    } catch (err) {
+      console.error("STALK ERROR:", err.message);
+      return message.reply("❌ Couldn't fetch info. Maybe private or invalid.");
     }
   }
 };
