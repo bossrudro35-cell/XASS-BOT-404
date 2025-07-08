@@ -1,66 +1,71 @@
 const axios = require("axios");
+const cheerio = require("cheerio");
 
-module.exports.config = {
-  name: "stalk",
-  version: "1.0.0",
-  credits: "ChatGPT",
-  description: "Facebook user info with UID or profile",
-  commandCategory: "info",
-  usages: ".stalk [uid/link]",
-  cooldowns: 5
-};
+module.exports = {
+  config: {
+    name: "stalk",
+    version: "2.0",
+    author: "GPT Stable Mod",
+    countDown: 3,
+    role: 0,
+    shortDescription: "Stalk FB user (no token)",
+    longDescription: "Get public Facebook info using UID or tag without token",
+    category: "info",
+    guide: {
+      en: "{pn} <uid> or reply/tag a user"
+    }
+  },
 
-module.exports.run = async function ({ api, event, args }) {
-  const uid = args[0] || event.senderID;
-  const time = new Date().toLocaleString("en-GB", { timeZone: "Asia/Dhaka" });
+  onStart: async function ({ event, message, args }) {
+    let uid = args[0] || Object.keys(event.mentions)[0];
+    if (!uid) return message.reply("📌 Please provide a UID or mention someone.");
 
-  try {
-    // Dummy data for now, replace with actual API if needed
-    const data = {
-      name: "MU SH FI Q",
-      fast: "MU",
-      uid,
-      username: "mu.sh.fi.q.775954",
-      relationship: "No data!",
-      birthday: "No data!",
-      followers: "3699",
-      home: "Panchagarh, Rājshāhi, Bangladesh",
-      local: "en_GB",
-      love: "No data!",
-      verified: "false",
-      web: "No data!",
-      quotes: "No data!",
-      about: "No data!",
-      work: "CYBER71 OFFICIAL",
-      gender: "Boy🧍🏻‍♂️",
-      nickname: "Siad",
-      creationDate: "[ 09/06/2023 ] || [ 09:07:48 ]"
-    };
+    if (!/^\d{10,20}$/.test(uid)) return message.reply("❗ Invalid UID format.");
 
-    const msg = `♻️ FACEBOOK ACC INFO ♻️
-➥Name: ${data.name}
-➥Fast: ${data.fast}
-➥UID: ${data.uid}
-➥UserName: ${data.username}
-➥Relationship: ${data.relationship}
-➥Birthday: ${data.birthday}
-➥Followers: ${data.followers}
-➥Home: ${data.home}
-➥Local: ${data.local}
-➥Love: ${data.love}
-➥Verified: ${data.verified}
-➥Web: ${data.web}
-➥Quotes: ${data.quotes}
-➥About: ${data.about}
-➥Works At: ${data.work}
-➥Gender: ${data.gender}
-➥Nickname: ${data.nickname}
-➥Account Creation Date:
-${data.creationDate}
-━━━━━━━━━━━━━━━━━━━━━`;
+    const url = `https://mbasic.facebook.com/profile.php?id=${uid}`;
 
-    return api.sendMessage(msg, event.threadID, event.messageID);
-  } catch (err) {
-    return api.sendMessage("❌ Error fetching profile info.", event.threadID, event.messageID);
+    try {
+      const res = await axios.get(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0"
+        }
+      });
+
+      const $ = cheerio.load(res.data);
+
+      const name = $("title").text() || "No data!";
+      const infoText = $("div").text();
+
+      const getInfo = (label) => {
+        const regex = new RegExp(label + ": (.*?)\\n");
+        const match = infoText.match(regex);
+        return match ? match[1] : "No data!";
+      };
+
+      const output = `♻️ 𝗙𝗔𝗖𝗘𝗕𝗢𝗢𝗞 𝗔𝗖𝗖 𝗜𝗡𝗙𝗢 ♻️
+━━━━━━━━━━━━━━━━━━
+➥Name: ${name}
+➥UID: ${uid}
+➥Username: No data!
+➥Relationship: ${getInfo("Relationship")}
+➥Birthday: ${getInfo("Birthday")}
+➥Followers: ${getInfo("followers") || "No data!"}
+➥Home: ${getInfo("Lives in")}
+➥Local: en_GB
+➥Love: ${getInfo("Love")}
+➥Verified: false
+➥Web: ${getInfo("Website")}
+➥Quotes: ${getInfo("Quote")}
+➥About: ${getInfo("About")}
+➥Works At: ${getInfo("Works at")}
+➥gender: Boy🧍‍♂️
+➥Nickname: ${getInfo("Nickname")}
+➥Account Creation Date: [Unknown] || [Unknown]
+━━━━━━━━━━━━━━━━━━`;
+
+      return message.reply(output);
+    } catch (e) {
+      return message.reply("❌ Error fetching data. Private profile or FB blocked bot.");
+    }
   }
 };
