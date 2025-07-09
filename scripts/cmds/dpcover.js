@@ -5,16 +5,14 @@ const path = require("path");
 module.exports = {
   config: {
     name: "dpcover",
-    version: "2.0",
+    version: "2.1",
     author: "Bbz x GPT",
     countDown: 3,
     role: 0,
     shortDescription: "Fetch DP + cover + gender",
     longDescription: "Shows profile picture, cover photo, gender & name of user",
     category: "info",
-    guide: {
-      en: "{pn} [mention or reply or blank for self]"
-    }
+    guide: "{pn} [mention/reply/self]"
   },
 
   onStart: async function ({ api, event, Users }) {
@@ -30,8 +28,12 @@ module.exports = {
     const profilePicUrl = `https://graph.facebook.com/${targetID}/picture?width=720&height=720&access_token=350685531728|62f8ce9f74b12f84c123cc23437a4a32`;
     const coverUrl = `https://graph.facebook.com/${targetID}?fields=cover&access_token=EAAAAUaZA8jlABABZCZD`;
 
-    const img1 = path.join(__dirname, "cache", `${targetID}_dp.jpg`);
-    const img2 = path.join(__dirname, "cache", `${targetID}_cover.jpg`);
+    // ✅ Ensure cache folder
+    const cachePath = path.join(__dirname, "cache");
+    fs.ensureDirSync(cachePath);
+
+    const img1 = path.join(cachePath, `${targetID}_dp.jpg`);
+    const img2 = path.join(cachePath, `${targetID}_cover.jpg`);
 
     const downloadImage = async (url, path) => {
       const res = await axios.get(url, { responseType: "arraybuffer" });
