@@ -1,106 +1,64 @@
-const { getTime } = global.utils;
+const fs = require("fs-extra");
+const axios = require("axios");
+const path = require("path");
 
-if (!global.temp.welcomeEvent) global.temp.welcomeEvent = {};
+module.exports.config = {
+  name: "welcome",
+  eventType: ["log:subscribe"],
+  version: "2.2.0",
+  credits: "Malvina-GPT",
+  description: "Welcome video file attached, no link exposure; mentions both new user & inviter"
+};
 
-module.exports = {
-  config: {
-    name: "welcome",
-    version: "3.1",
-    author: "BaYjid",
-    category: "events"
-  },
+module.exports.run = async function({ api, event }) {
+  const { threadID, logMessageData } = event;
+  const added = logMessageData.addedParticipants[0];
+  const addedID = added.userFbId;
+  const addedName = added.fullName;
 
-  langs: {
-    en: {
-      session1: "☀ Morning",
-      session2: "⛅ Noon",
-      session3: "🌆 Afternoon",
-      session4: "🌙 Evening",
-      welcomeMessage: "🌸 Malvina Bb'e 🌸\n\n🚀 Thank you for inviting me!\n⚡ Bot Prefix: %1\n🔎 Type %1help to see all commands.",
-      multiple1: "🔹 You",
-      multiple2: "🔹 You guys",
-      defaultWelcomeMessage: "🎉『 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 』🎉\n\n💠 Hey {userName}!\n🔹 You just joined 『 {boxName} 』\n✨ Have a fantastic {session}!\n\n👤 Added by: {adderName}"
-    }
-  },
+  const inviterID = logMessageData.author;
+  const invInfo = await api.getUserInfo(inviterID);
+  const inviterName = invInfo[inviterID].name;
 
-  onStart: async ({ threadsData, message, event, api, getLang }) => {
-    if (event.logMessageType !== "log:subscribe") return;
+  const videoUrl = "https://drive.google.com/uc?export=download&id=1-RV0_mJS0vAZpvO6IDK3f5eJuLIE3jhm";
+  const cacheDir = path.join(__dirname, "cache");
+  if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+  const videoPath = path.join(cacheDir, `welcome_${threadID}.mp4`);
 
-    const { threadID, logMessageData, author } = event;
-    const { addedParticipants } = logMessageData;
-    const hours = getTime("HH");
-    const prefix = global.utils.getPrefix(threadID);
-    const botID = api.getCurrentUserID();
-    const nickNameBot = global.GoatBot.config.nickNameBot;
+  try {
+    // Download video
+    const res = await axios.get(videoUrl, { responseType: "stream" });
+    await new Promise((resv, rej) => {
+      const ws = fs.createWriteStream(videoPath);
+      res.data.pipe(ws);
+      ws.on("finish", resv);
+      ws.on("error", rej);
+    });
 
-    if (addedParticipants.some(user => user.userFbId === botID)) {
-      if (nickNameBot) api.changeNickname(nickNameBot, threadID, botID);
-      return message.send(getLang("welcomeMessage", prefix));
-    }
+    // Build welcome text
+    const threadInfo = await api.getThreadInfo(threadID);
+    const groupName = threadInfo.threadName;
+    const msgBody = `
+👋 Hello @${addedName}
+💌 You were added by: @${inviterName}
+🏠 Group: ${groupName}
+🆔 GC ID: ${threadID}
+🎉 Enjoy your stay!
+`;
 
-    if (!global.temp.welcomeEvent[threadID])
-      global.temp.welcomeEvent[threadID] = { joinTimeout: null, dataAddedParticipants: [] };
+    // Send video as file attachment
+    await api.sendMessage({
+      body: msgBody,
+      mentions: [
+        { tag: `@${addedName}`, id: addedID },
+        { tag: `@${inviterName}`, id: inviterID }
+      ],
+      attachment: fs.createReadStream(videoPath)
+    }, threadID);
 
-    global.temp.welcomeEvent[threadID].dataAddedParticipants.push(...addedParticipants);
-    clearTimeout(global.temp.welcomeEvent[threadID].joinTimeout);
-
-    global.temp.welcomeEvent[threadID].joinTimeout = setTimeout(async () => {
-      const threadData = await threadsData.get(threadID);
-      if (threadData.settings.sendWelcomeMessage === false) return;
-
-      const dataAddedParticipants = global.temp.welcomeEvent[threadID].dataAddedParticipants;
-      const bannedUsers = threadData.data.banned_ban || [];
-      const threadName = threadData.threadName;
-
-      let newMembers = [], mentions = [];
-      let isMultiple = dataAddedParticipants.length > 1;
-
-      for (const user of dataAddedParticipants) {
-        if (bannedUsers.some(b => b.id === user.userFbId)) continue;
-        newMembers.push(user.fullName);
-        mentions.push({ tag: user.fullName, id: user.userFbId });
-      }
-
-      if (newMembers.length === 0) return;
-
-      let adderName = "Someone";
-      try {
-        const adderInfo = await api.getUserInfo(author);
-        adderName = adderInfo[author]?.name || "Someone";
-        mentions.push({ tag: adderName, id: author });
-      } catch (e) {
-        console.error("[WELCOME] Error getting adder info:", e.message);
-      }
-
-      let welcomeMessage = threadData.data.welcomeMessage || getLang("defaultWelcomeMessage");
-
-      welcomeMessage = welcomeMessage
-        .replace(/\{userName\}|\{userNameTag\}/g, newMembers.join(", "))
-        .replace(/\{boxName\}|\{threadName\}/g, threadName)
-        .replace(/\{multiple\}/g, isMultiple ? getLang("multiple2") : getLang("multiple1"))
-        .replace(/\{session\}/g,
-          hours <= 10 ? getLang("session1") :
-          hours <= 12 ? getLang("session2") :
-          hours <= 18 ? getLang("session3") : getLang("session4"))
-        .replace(/\{adderName\}/g, adderName);
-
-      let form = {
-        body: welcomeMessage,
-        mentions
-      };
-
-      // ✅ If welcome video is set via `attachment_id`, include it
-      if (threadData.data.welcomeVideoAttachmentID) {
-        form.attachment = [{
-          type: "video",
-          payload: {
-            attachment_id: threadData.data.welcomeVideoAttachmentID
-          }
-        }];
-      }
-
-      await message.send(form);
-      delete global.temp.welcomeEvent[threadID];
-    }, 1500);
+    fs.unlinkSync(videoPath);
+  } catch (err) {
+    console.error("Welcome Error:", err);
+    api.sendMessage("❌ Could not send welcome video.", threadID);
   }
 };
