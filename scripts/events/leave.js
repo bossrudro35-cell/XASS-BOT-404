@@ -1,6 +1,6 @@
-//const { getTime, drive } = global.utils;
+const { getTime, drive } = global.utils;
 
-/*module.exports = {
+module.exports = {
 	config: {
 		name: "leave",
 		version: "1.4",
