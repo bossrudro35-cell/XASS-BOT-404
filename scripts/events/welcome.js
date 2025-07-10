@@ -7,56 +7,45 @@ module.exports.config = {
   eventType: ["log:subscribe"],
   version: "2.2.0",
   credits: "Malvina-GPT",
-  description: "Welcome video file attached, no link exposure; mentions both new user & inviter"
+  description: "Welcome with video attachment, mention user and who added"
 };
 
-module.exports.run = async function({ api, event }) {
+module.exports.onStart = async function({ api, event }) {
   const { threadID, logMessageData } = event;
   const added = logMessageData.addedParticipants[0];
   const addedID = added.userFbId;
   const addedName = added.fullName;
 
   const inviterID = logMessageData.author;
-  const invInfo = await api.getUserInfo(inviterID);
-  const inviterName = invInfo[inviterID].name;
+  const inviterInfo = await api.getUserInfo(inviterID);
+  const inviterName = inviterInfo[inviterID].name;
 
   const videoUrl = "https://drive.google.com/uc?export=download&id=1-RV0_mJS0vAZpvO6IDK3f5eJuLIE3jhm";
-  const cacheDir = path.join(__dirname, "cache");
-  if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
-  const videoPath = path.join(cacheDir, `welcome_${threadID}.mp4`);
+  const filePath = path.join(__dirname, "cache", `welcome_${threadID}.mp4`);
 
   try {
-    // Download video
     const res = await axios.get(videoUrl, { responseType: "stream" });
-    await new Promise((resv, rej) => {
-      const ws = fs.createWriteStream(videoPath);
-      res.data.pipe(ws);
-      ws.on("finish", resv);
-      ws.on("error", rej);
+    const stream = fs.createWriteStream(filePath);
+    res.data.pipe(stream);
+    await new Promise((resolve, reject) => {
+      stream.on("finish", resolve);
+      stream.on("error", reject);
     });
 
-    // Build welcome text
-    const threadInfo = await api.getThreadInfo(threadID);
-    const groupName = threadInfo.threadName;
-    const msgBody = `
-👋 Hello @${addedName}
-💌 You were added by: @${inviterName}
-🏠 Group: ${groupName}
-🆔 GC ID: ${threadID}
-🎉 Enjoy your stay!
-`;
+    const groupInfo = await api.getThreadInfo(threadID);
+    const groupName = groupInfo.threadName;
 
-    // Send video as file attachment
-    await api.sendMessage({
-      body: msgBody,
+    const message = {
+      body: `👋 Hello @${addedName}\n💌 Added by: @${inviterName}\n🏠 Group: ${groupName}\n🆔 GC ID: ${threadID}\n🎉 Enjoy your stay!`,
       mentions: [
         { tag: `@${addedName}`, id: addedID },
         { tag: `@${inviterName}`, id: inviterID }
       ],
-      attachment: fs.createReadStream(videoPath)
-    }, threadID);
+      attachment: fs.createReadStream(filePath)
+    };
 
-    fs.unlinkSync(videoPath);
+    await api.sendMessage(message, threadID);
+    fs.unlinkSync(filePath);
   } catch (err) {
     console.error("Welcome Error:", err);
     api.sendMessage("❌ Could not send welcome video.", threadID);
