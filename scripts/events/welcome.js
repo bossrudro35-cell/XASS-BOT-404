@@ -1,104 +1,82 @@
-const { getTime, drive } = global.utils;
+const fs = require('fs-extra');
+const path = require('path');
+const moment = require('moment-timezone');
+const { createCanvas, loadImage, registerFont } = require('canvas');
 
-if (!global.temp.welcomeEvent) global.temp.welcomeEvent = {};
+// Register a font
+registerFont(path.join(__dirname, 'fonts', 'Poppins-Bold.ttf'), { family: 'Poppins' });
 
 module.exports = {
-	config: {
-		name: "welcome",
-		version: "2.1",
-		author: "BaYjid",
-		category: "events"
-	},
+  config: {
+    name: 'welcome',
+    version: '2.0',
+    credits: 'Devil + GPT',
+    description: 'Stylish dynamic welcome card with profile, group name, member count, time',
+    commandCategory: 'group',
+    cooldowns: 2
+  },
 
-	langs: {
-		en: {
-			session1: "☀ 𝓜𝓸𝓻𝓷𝓲𝓷𝓰",
-			session2: "⛅ 𝓝𝓸𝓸𝓷",
-			session3: "🌆 𝓐𝓯𝓽𝓮𝓻𝓷𝓸𝓸𝓷",
-			session4: "🌙 𝓔𝓿𝓮𝓷𝓲𝓷𝓰",
-			welcomeMessage: "-`ღ´🦋𝗠𝗲𝗹𝗶𝘀𝗮🍒🥂\n\n🚀 𝗧𝗵𝗮𝗻𝗸 𝘆𝗼𝘂 𝗳𝗼𝗿 𝗶𝗻𝘃𝗶𝘁𝗶𝗻𝗴 𝗺𝗲!\n⚡ 𝗕𝗼𝘁 𝗣𝗿𝗲𝗳𝗶𝘅: %1\n🔎 𝗧𝗼 𝗰𝗵𝗲𝗰𝗸 𝗮𝗹𝗹 𝗰𝗼𝗺𝗺𝗮𝗻𝗱𝘀, 𝘁𝘆𝗽𝗲: %1help\n\n✨ 𝗛𝗮𝘃𝗲 𝗮 𝗴𝗿𝗲𝗮𝘁 𝘁𝗶𝗺𝗲! ✨",
-			multiple1: "🔹 𝖸𝗈𝗎",
-			multiple2: "🔹 𝖸𝗈𝗎 𝖦𝗎𝗒𝗌",
-			defaultWelcomeMessage: "🎉 『 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 』 🎉\n\n💠 𝗛𝗲𝘆 {userName}!\n🔹 𝗬𝗼𝘂 𝗷𝘂𝘀𝘁 𝗷𝗼𝗶𝗻𝗲𝗱 『 {boxName} 』\n⏳ 𝗧𝗶𝗺𝗲 𝗳𝗼𝗿 𝘀𝗼𝗺𝗲 𝗳𝘂𝗻! 𝗛𝗮𝘃𝗲 𝗮 𝗳𝗮𝗻𝘁𝗮𝘀𝘁𝗶𝗰 {session} 🎊\n\n⚠ 𝗣𝗹𝗲𝗮𝘀𝗲 𝗳𝗼𝗹𝗹𝗼𝘄 𝗮𝗹𝗹 𝗴𝗿𝗼𝘂𝗽 𝗿𝘂𝗹𝗲𝘀! 🚀\n\n👤 𝗔𝗱𝗱𝗲𝗱 𝗯𝘆: {adderName}"
-		}
-	},
+  onJoin: async ({ api, event }) => {
+    const { threadID, senderID } = event;
+    const [threadInfo, userInfo] = await Promise.all([
+      api.getThreadInfo(threadID),
+      api.getUserInfo(senderID)
+    ]);
 
-	onStart: async ({ threadsData, message, event, api, getLang }) => {
-		if (event.logMessageType !== "log:subscribe") return;
+    const groupName = threadInfo.threadName;
+    const memberCount = threadInfo.participantIDs.length;
+    const userName = userInfo[senderID].name || 'New Member';
+    const timeStr = moment.tz('Asia/Dhaka').format('hh:mm:ss A - DD/MM/YYYY - dddd');
 
-		const { threadID, logMessageData } = event;
-		const { addedParticipants } = logMessageData;
-		const hours = getTime("HH");
-		const prefix = global.utils.getPrefix(threadID);
-		const nickNameBot = global.GoatBot.config.nickNameBot;
+    // Canvas size
+    const width = 800, height = 450;
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
 
-		if (addedParticipants.some(user => user.userFbId === api.getCurrentUserID())) {
-			if (nickNameBot) api.changeNickname(nickNameBot, threadID, api.getCurrentUserID());
-			return message.send(getLang("welcomeMessage", prefix));
-		}
+    // Draw background
+    const bg = await loadImage(path.join(__dirname, 'backgrounds', 'style2.jpg'));
+    ctx.drawImage(bg, 0, 0, width, height);
 
-		if (!global.temp.welcomeEvent[threadID]) {
-			global.temp.welcomeEvent[threadID] = { joinTimeout: null, dataAddedParticipants: [] };
-		}
+    // Draw circular avatar
+    const avatarBuffer = await api.getUserAvatar(senderID);
+    const avatar = await loadImage(avatarBuffer);
+    const size = 140, x = (width - size) / 2, y = 40;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(avatar, x, y, size, size);
+    ctx.restore();
+    ctx.strokeStyle = '#FFF';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
+    ctx.stroke();
 
-		global.temp.welcomeEvent[threadID].dataAddedParticipants.push(...addedParticipants);
-		clearTimeout(global.temp.welcomeEvent[threadID].joinTimeout);
+    // Text
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 36px Poppins';
+    ctx.fillText(`𖤍『 ${userName} 』𖤍`, width/2, y + size + 50);
+    ctx.font = 'bold 28px Poppins';
+    ctx.fillText(`Welcome to 💥${groupName}💥`, width/2, y + size + 100);
+    ctx.font = '24px Poppins';
+    ctx.fillText(`You are the ${memberCount}th member of this group`, width/2, y + size + 140);
+    ctx.font = '20px Poppins';
+    ctx.fillText(timeStr, width/2, y + size + 180);
 
-		global.temp.welcomeEvent[threadID].joinTimeout = setTimeout(async () => {
-			const threadData = await threadsData.get(threadID);
-			if (threadData.settings.sendWelcomeMessage === false) return;
+    // Save image & send
+    const imgPath = path.join(__dirname, 'cache', `${senderID}_welcome.png`);
+    const out = fs.createWriteStream(imgPath);
+    const stream = canvas.createPNGStream();
+    stream.pipe(out);
+    await new Promise(resolve => out.on('finish', resolve));
 
-			const dataAddedParticipants = global.temp.welcomeEvent[threadID].dataAddedParticipants;
-			const bannedUsers = threadData.data.banned_ban || [];
-			const threadName = threadData.threadName;
-
-			let newMembers = [], mentions = [];
-			let isMultiple = dataAddedParticipants.length > 1;
-
-			for (const user of dataAddedParticipants) {
-				if (bannedUsers.some(banned => banned.id === user.userFbId)) continue;
-				newMembers.push(user.fullName);
-				mentions.push({ tag: user.fullName, id: user.userFbId });
-			}
-
-			if (newMembers.length === 0) return;
-
-			const adderID = event.author;
-			const adderInfo = await api.getUserInfo(adderID);
-			const adderName = adderInfo[adderID]?.name || "Someone";
-			mentions.push({ tag: adderName, id: adderID });
-
-			let welcomeMessage = threadData.data.welcomeMessage || getLang("defaultWelcomeMessage");
-
-			welcomeMessage = welcomeMessage
-				.replace(/\{userName\}|\{userNameTag\}/g, newMembers.join(", "))
-				.replace(/\{boxName\}|\{threadName\}/g, threadName)
-				.replace(/\{multiple\}/g, isMultiple ? getLang("multiple2") : getLang("multiple1"))
-				.replace(/\{session\}/g,
-					hours <= 10 ? getLang("session1") :
-					hours <= 12 ? getLang("session2") :
-					hours <= 18 ? getLang("session3") : getLang("session4")
-				)
-				.replace(/\{adderName\}/g, adderName);
-
-			let form = {
-				body: welcomeMessage,
-				mentions: mentions
-			};
-
-			// 🔥 Hardcoded welcome video
-			const hardcodedFileId = "1-RV0_mJS0vAZpvO6IDK3f5eJuLIE3jhm";
-			try {
-				const stream = await drive.getFile(hardcodedFileId, "stream");
-				if (stream) {
-					form.attachment = [stream];
-				}
-			} catch (err) {
-				console.error("❌ Failed to load welcome video:", err.message);
-			}
-
-			message.send(form);
-			delete global.temp.welcomeEvent[threadID];
-		}, 1500);
-	}
+    return api.sendMessage({
+      body: `Hello 𖤍『 ${userName} 』𖤍\n\nWelcome to 💥${groupName}💥\nYou're the ${memberCount}th member in this group. Please enjoy!\n\n━━━━━━━━━━━━━━━\n🕒 ${timeStr}`,
+      mentions: [{ tag: userName, id: senderID }],
+      attachment: fs.createReadStream(imgPath)
+    }, threadID);
+  }
 };
