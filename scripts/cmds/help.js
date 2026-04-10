@@ -6,18 +6,18 @@ const { commands } = global.GoatBot;
 
 // ✅ List of your 5 tutorial video IDs from Google Drive
 const VIDEO_IDS = [
-  "1-1iSV2SyuP3TEH8IVkLIGN0_MQ8cVYjm",   // Video 1
-  "1-ubkubbvyNcMi4a1HDa0Zl0FtjK_Hbvx",   // Video 2
-  "109DxLi5McmXlww8PwIxjE6FsBVLLbScl",   // Video 3
-  "108v-RR4HKmg3x8csHphcgh-ZNo3M_Zo2",   // Video 4
-  "1-vD0mv3wGnAM0rmztYQuzxB2by2EgCMX"    // Video 5
+  "",   // Video 1
+  "",   // Video 2
+  "",   // Video 3
+  "",   // Video 4
+  ""    // Video 5
 ];
 
 module.exports = {
   config: {
     name: "help",
     version: "1.34",
-    author: "Rahad X Bayjid",
+    author: "Rudro X Ery",
     countDown: 5,
     role: 0,
     shortDescription: { en: "📖 Show all commands + direct random guide video" },
